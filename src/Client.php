@@ -109,6 +109,8 @@ class Client extends \GuzzleHttp\Client
             $aRq['pickup_business_name'] = $sPickupBusinessName;
         if(!empty($sPickupNotes))
             $aRq['pickup_notes'] = $sPickupNotes;
+	    if(!empty($sDropoffNotes))
+		    $aRq['dropoff_notes'] = $sDropoffNotes;
         if($iQuoteId !== null)
             $aRq['quote_id'] = $iQuoteId;
 
@@ -138,6 +140,35 @@ class Client extends \GuzzleHttp\Client
 
         return $this->_request($type, $endpoint, $params);
     }
+
+	/**
+	 *
+	 * Add Tip to a completed delivery
+	 *
+	 * @param $iDeliveryId
+	 * @param $iTipAmount
+	 *
+	 * @return mixed
+	 */
+	public function addTipToDelivery($iDeliveryId, $iTipAmount)
+	{
+
+		// Add the required arguments
+		$aRq = [
+			'tip_by_customer'     => bcmul($iTipAmount, 100)
+		];
+
+		$type = 'POST';
+		$endpoint = 'customers/'. $this->_sCustomerId . '/deliveries/' . $iDeliveryId;
+		$params = [
+
+			'form_params' => $aRq
+
+		];
+
+		return $this->_request($type, $endpoint, $params);
+
+	}
 
     /**
      * Retrieve updated details about a delivery.
@@ -197,7 +228,7 @@ class Client extends \GuzzleHttp\Client
         } catch(\GuzzleHttp\Exception\RequestException $e) {
             if($e->hasResponse()) {
                 $contents = (string) $e->getResponse()->getBody();
-                return array('status' => 'error', 'request_url' => $e->getRequest()->getUrl(), 'response_status' => $e->getResponse()->getStatusCode(), 'response' => $contents);
+	            return array('status' => 'error', 'request_url' => $e->getRequest()->getUri(), 'response_status' => $e->getResponse()->getStatusCode(), 'response' => $contents);
             }
         } catch(\Exception $e) {
             return array('status' => 'error', 'message' => $e->getMessage());
